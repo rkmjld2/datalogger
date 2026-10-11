@@ -78,7 +78,9 @@ if (isset($_POST['Search'])) {
         "Area",
         "Bar",
         "Stacked Bar",
-        "Stacked Area"
+        "Stacked Area",
+        "Pie",
+        "Histogram"
     );
 
 
@@ -209,6 +211,9 @@ src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js">
 <script
 src="https://cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js">
 </script>
+
+<!-- Chart.js: used for Pie Chart and Histogram only -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 
 
 <style>
@@ -394,6 +399,11 @@ body {
     width: 100%;
 
     height: 500px;
+}
+
+#chart canvas {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 
@@ -741,6 +751,22 @@ if ($graphType == "Stacked Area") echo "selected";
 ?>
 >
 Stacked Area
+</option>
+
+<option value="Pie"
+<?php
+if ($graphType == "Pie") echo "selected";
+?>
+>
+Pie Chart
+</option>
+
+<option value="Histogram"
+<?php
+if ($graphType == "Histogram") echo "selected";
+?>
+>
+Histogram
 </option>
 
 
@@ -1166,6 +1192,141 @@ elseif ($graphType == "Stacked Area") {
 graphOptions.stacked = true;
 
 Morris.Area(graphOptions);
+
+<?php
+
+}
+elseif ($graphType == "Pie") {
+
+?>
+
+// Replace the Morris graph area with a canvas for Chart.js.
+document.getElementById('chart').innerHTML =
+    '<canvas id="extraChart" aria-label="Pie chart of total readings"></canvas>';
+
+// Pie slices represent the sum of each value across the selected date range.
+var pieTotals = [
+    chartData.reduce(function(sum, row) { return sum + Number(row.value1 || 0); }, 0),
+    chartData.reduce(function(sum, row) { return sum + Number(row.value2 || 0); }, 0),
+    chartData.reduce(function(sum, row) { return sum + Number(row.value3 || 0); }, 0)
+];
+
+new Chart(document.getElementById('extraChart'), {
+    type: 'pie',
+    data: {
+        labels: ['Value 1 total', 'Value 2 total', 'Value 3 total'],
+        datasets: [{
+            data: pieTotals,
+            backgroundColor: ['#2878B5', '#F39C35', '#2EAD69'],
+            borderColor: '#ffffff',
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' +
+                            Number(context.raw).toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+<?php
+
+}
+elseif ($graphType == "Histogram") {
+
+?>
+
+// Collect all readings from Value 1, Value 2 and Value 3.
+var readings = [];
+chartData.forEach(function(row) {
+    readings.push(Number(row.value1));
+    readings.push(Number(row.value2));
+    readings.push(Number(row.value3));
+});
+readings = readings.filter(function(value) {
+    return Number.isFinite(value);
+});
+
+document.getElementById('chart').innerHTML =
+    '<canvas id="extraChart" aria-label="Histogram of readings"></canvas>';
+
+if (readings.length > 0) {
+    var minimum = Math.min.apply(null, readings);
+    var maximum = Math.max.apply(null, readings);
+    var binCount = 10;
+
+    // Widen the range slightly when every reading is identical.
+    if (minimum === maximum) {
+        minimum = minimum - 0.5;
+        maximum = maximum + 0.5;
+    }
+
+    var binWidth = (maximum - minimum) / binCount;
+    var frequencies = new Array(binCount).fill(0);
+    var binLabels = [];
+
+    for (var i = 0; i < binCount; i++) {
+        var lower = minimum + i * binWidth;
+        var upper = minimum + (i + 1) * binWidth;
+        binLabels.push(lower.toFixed(2) + ' – ' + upper.toFixed(2));
+    }
+
+    readings.forEach(function(value) {
+        var index = Math.floor((value - minimum) / binWidth);
+        if (index < 0) index = 0;
+        if (index >= binCount) index = binCount - 1;
+        frequencies[index]++;
+    });
+
+    new Chart(document.getElementById('extraChart'), {
+        type: 'bar',
+        data: {
+            labels: binLabels,
+            datasets: [{
+                label: 'Number of readings',
+                data: frequencies,
+                backgroundColor: '#2878B5',
+                borderColor: '#185783',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Readings: ' + context.raw;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'Reading range' },
+                    ticks: { maxRotation: 45, minRotation: 25 }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 },
+                    title: { display: true, text: 'Frequency (count)' }
+                }
+            }
+        }
+    });
+}
 
 <?php
 
