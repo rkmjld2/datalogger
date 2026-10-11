@@ -1,21 +1,43 @@
-```php
 <?php
 
 // =====================================================
-// DATABASE CONNECTION
+// DATABASE CONNECTION — SECURE TLS/SSL
 // =====================================================
 
 $servername = "gateway01.ap-southeast-1.prod.aws.tidbcloud.com";
-$username   = "ax6KHc1BNkyuaor.root";
-$password   = "EP8isIWoEOQk7DSr";
+$username   = "YOUR_TIDB_USERNAME";
+$password   = "YOUR_TIDB_PASSWORD";
 $dbname     = "espdemo2";
 
-$conn = mysqli_connect(
-    $servername,
-    $username,
-    $password,
-    $dbname
-);
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+
+    // Initialize MySQL connection
+    $conn = mysqli_init();
+
+    // Connect using encrypted SSL/TLS transport
+    mysqli_real_connect(
+        $conn,
+        $servername,
+        $username,
+        $password,
+        $dbname,
+        4000,
+        NULL,
+        MYSQLI_CLIENT_SSL
+    );
+
+    // Set character encoding
+    mysqli_set_charset($conn, "utf8mb4");
+
+} catch (mysqli_sql_exception $e) {
+
+    die("Secure database connection failed: "
+        . htmlspecialchars($e->getMessage()));
+
+}
+
 
 
 // =====================================================
