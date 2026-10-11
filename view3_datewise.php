@@ -5,8 +5,8 @@
 // =====================================================
 
 $servername = "gateway01.ap-southeast-1.prod.aws.tidbcloud.com";
-$username   = "YOUR_TIDB_USERNAME";
-$password   = "YOUR_TIDB_PASSWORD";
+$username   = "ax6KHc1BNkyuaor.root";
+$password   = "EP8isIWoEOQk7DSr";
 $dbname     = "espdemo2";
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
