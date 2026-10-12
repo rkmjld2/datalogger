@@ -1,17 +1,35 @@
-<?php
-//Creates new record as per request
-    //Connect to database
-    $servername = "localhost";
-    $username = "root";
-    $password = "";
-    $dbname = "espdemo2";
+$servername = "gateway01.ap-southeast-1.prod.aws.tidbcloud.com";
+$username   = "ax6KHc1BNkyuaor.root";
+$password   = "EP8isIWoEOQk7DSr";
+$dbname     = "espdemo2";
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-    // Create connection
-    $conn = new mysqli($servername, $username, $password, $dbname);
-    // Check connection
-    if ($conn->connect_error) {
-        die("Database Connection failed: " . $conn->connect_error);
-    }
+try {
+
+    // Initialize MySQL connection
+    $conn = mysqli_init();
+
+    // Connect using encrypted SSL/TLS transport
+    mysqli_real_connect(
+        $conn,
+        $servername,
+        $username,
+        $password,
+        $dbname,
+        4000,
+        NULL,
+        MYSQLI_CLIENT_SSL
+    );
+
+    // Set character encoding
+    mysqli_set_charset($conn, "utf8mb4");
+
+} catch (mysqli_sql_exception $e) {
+
+    die("Secure database connection failed: "
+        . htmlspecialchars($e->getMessage()));
+
+}
 
     //Get current date and time
     date_default_timezone_set('Asia/Kolkata');
