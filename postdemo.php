@@ -1,3 +1,7 @@
+<?php
+// =====================================================
+// DATABASE CONNECTION — SECURE TLS/SSL
+// =====================================================
 $servername = "gateway01.ap-southeast-1.prod.aws.tidbcloud.com";
 $username   = "ax6KHc1BNkyuaor.root";
 $password   = "EP8isIWoEOQk7DSr";
